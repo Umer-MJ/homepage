@@ -145,6 +145,31 @@
   footer { text-align: center; padding: 50px 24px 40px; color: var(--sub); font-size: 14px; }
   footer .heart { color: var(--purple); }
 
+  /* 跟随鼠标的发光光斑 + 粒子拖尾 */
+  .cursor-glow {
+    position: fixed; width: 110px; height: 110px; border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    background: radial-gradient(circle, rgba(83,206,255,0.30) 0%, rgba(123,107,255,0.16) 40%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s;
+    opacity: 0;
+    filter: blur(3px);
+  }
+  .cursor-dot {
+    position: fixed; width: 6px; height: 6px; border-radius: 50%;
+    pointer-events: none; z-index: 10000;
+    background: #fff;
+    box-shadow: 0 0 12px 3px rgba(83,206,255,0.9);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  #trail {
+    position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  }
+  html.has-cursor .cursor-glow { opacity: 1; }
+  html.has-cursor .cursor-dot { opacity: 1; }
+
   @media (max-width: 760px) {
     .hero h1 { font-size: 40px; }
     .about-grid { grid-template-columns: 1fr; }
@@ -156,6 +181,10 @@
 <body>
 <div class="bg-glow"></div>
 <div class="bg-grid"></div>
+<div class="cursor-glow"></div>
+<div class="cursor-glow"></div>
+<canvas id="trail"></canvas>
+<div class="cursor-dot"></div>
 
 <nav>
   <div class="nav-inner">
@@ -253,6 +282,89 @@
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  // === 跟随鼠标的炫酷动画 ===
+  const big = document.querySelector('.cursor-glow');
+  const dot = document.querySelector('.cursor-dot');
+  const trail = document.getElementById('trail');
+  const ctx = trail.getContext('2d');
+  let targetX = innerWidth/2, targetY = innerHeight/2;
+  let bigX = targetX, bigY = targetY;
+
+  function resize() {
+    trail.width = innerWidth;
+    trail.height = innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // 粒子（拖尾）池
+  const particles = [];
+  const COLORS = ['#53ceff', '#7b6bff', '#4ade80', '#ffb74d'];
+
+  window.addEventListener('mousemove', (e) => {
+    targetX = e.clientX;
+    targetY = e.clientY;
+    document.documentElement.classList.add('has-cursor');
+    dot.style.left = targetX + 'px';
+    dot.style.top = targetY + 'px';
+    // 泼出 2 颗粒子
+    for (let i = 0; i < 2; i++) {
+      particles.push({
+        x: targetX + (Math.random()-0.5)*4,
+        y: targetY + (Math.random()-0.5)*4,
+        vx: (Math.random()-0.5)*2.4,
+        vy: (Math.random()-0.5)*2.4 - 0.3,
+        life: 1,
+        decay: 0.030 + Math.random()*0.025,
+        size: 4 + Math.random()*4,
+        color: COLORS[Math.floor(Math.random()*COLORS.length)]
+      });
+    }
+  });
+
+  document.addEventListener('mouseleave', () => {
+    document.documentElement.classList.remove('has-cursor');
+  });
+
+  let lastTime = 0;
+  function loop(t) {
+    const dt = Math.min((t - lastTime) / 16.7, 3);
+    lastTime = t;
+
+    // 大光斑缓动跟随
+    bigX += (targetX - bigX) * 0.10 * dt;
+    bigY += (targetY - bigY) * 0.10 * dt;
+    big.style.left = bigX + 'px';
+    big.style.top = bigY + 'px';
+
+    // 绘制粒子拖尾
+    ctx.clearRect(0, 0, trail.width, trail.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      p.life -= p.decay * dt;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = p.life * 0.7;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = p.color;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    ctx.globalCompositeOperation = 'source-over';
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
 </script>
 </body>
 </html>
