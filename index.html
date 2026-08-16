@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Umer-MJ · 个人主页</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0b101a;
+    --bg2: #111827;
+    --card: #1a2334;
+    --line: #2a3a55;
+    --cyan: #53ceff;
+    --purple: #7b6bff;
+    --green: #4ade80;
+    --text: #e2ebfa;
+    --sub: #8c9bb4;
+    --mono: "Menlo", "SF Mono", Consolas, monospace;
+    --sans: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(83,206,255,0.25); }
+
+  /* 背景装饰 */
+  .bg-glow {
+    position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(600px 300px at 15% 10%, rgba(83,206,255,0.10), transparent 60%),
+      radial-gradient(700px 400px at 85% 25%, rgba(123,107,255,0.10), transparent 60%),
+      var(--bg);
+  }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1; opacity: 0.35;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+  }
+
+  /* 导航 */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(11,16,26,0.7);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 1080px; margin: 0 auto; padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-weight: 700; font-size: 18px; letter-spacing: 0.5px; }
+  .logo b { color: var(--cyan); }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a {
+    color: var(--sub); text-decoration: none; font-size: 15px;
+    transition: color 0.2s; position: relative;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  section { padding: 110px 0 40px; scroll-margin-top: 70px; }
+
+  /* 首页英雄区 */
+  .hero { padding-top: 170px; padding-bottom: 60px; }
+  .hero .tag {
+    display: inline-block; font-family: var(--mono); font-size: 13px;
+    color: var(--green); border: 1px solid rgba(74,222,128,0.3);
+    padding: 4px 14px; border-radius: 20px; margin-bottom: 22px;
+    background: rgba(74,222,128,0.08);
+  }
+  .hero h1 { font-size: 56px; line-height: 1.15; font-weight: 800; letter-spacing: 0.5px; }
+  .hero h1 .grad {
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p { margin: 24px 0 34px; font-size: 19px; color: var(--sub); max-width: 640px; }
+  .hero .cta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 13px 30px; border-radius: 10px;
+    font-size: 15px; font-weight: 600; text-decoration: none; transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #1769a8, var(--cyan)); color: #eaf6ff;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(83,206,255,0.3); }
+  .btn-ghost { border: 1px solid var(--line); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* 区块标题 */
+  .sec-head { margin-bottom: 40px; }
+  .sec-head .num { font-family: var(--mono); color: var(--cyan); font-size: 15px; margin-right: 10px; }
+  .sec-head h2 { font-size: 34px; font-weight: 800; letter-spacing: 0.5px; }
+  .sec-head .line { width: 50px; height: 3px; background: linear-gradient(90deg, var(--cyan), var(--purple)); margin-top: 14px; }
+
+  /* 关于 */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .about-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 28px;
+  }
+  .about-card h3 { font-size: 20px; margin-bottom: 14px; color: var(--cyan); }
+  .about-card p { color: var(--sub); font-size: 16px; }
+  .skill-list { list-style: none; margin-top: 6px; }
+  .skill-list li { padding: 10px 0; border-bottom: 1px dashed var(--line); display: flex; justify-content: space-between; color: var(--text); }
+  .skill-list li:last-child { border: none; }
+  .skill-list .lvl { color: var(--sub); font-family: var(--mono); font-size: 13px; }
+  .dot { color: var(--green); }
+
+  /* 项目 */
+  .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 24px; }
+  .proj {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 26px; transition: transform 0.2s, border-color 0.2s;
+  }
+  .proj:hover { transform: translateY(-5px); border-color: var(--cyan); }
+  .proj .ico { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
+  .proj h3 { font-size: 19px; margin-bottom: 8px; }
+  .proj .desc { color: var(--sub); font-size: 15px; margin-bottom: 16px; }
+  .proj .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .proj .tag-pt {
+    font-size: 12px; font-family: var(--mono); padding: 3px 10px;
+    border-radius: 6px; background: rgba(83,206,255,0.1); color: var(--cyan);
+    border: 1px solid rgba(83,206,255,0.25);
+  }
+
+  /* 联系 */
+  .contact {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 44px; text-align: center;
+  }
+  .contact h2 { font-size: 30px; margin-bottom: 12px; }
+  .contact p { color: var(--sub); margin-bottom: 30px; }
+  .contact .btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  footer { text-align: center; padding: 50px 24px 40px; color: var(--sub); font-size: 14px; }
+  footer .heart { color: var(--purple); }
+
+  @media (max-width: 760px) {
+    .hero h1 { font-size: 40px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .nav-links { gap: 18px; }
+    .nav-links a { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo"><b>U</b>mer•<b>M</b>J</div>
+    <ul class="nav-links">
+      <li><a href="#home">首页</a></li>
+      <li><a href="#about">关于</a></li>
+      <li><a href="#projects">项目</a></li>
+      <li><a href="#contact">联系</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <section class="hero" id="home">
+    <span class="tag">// 欢迎来到我的主页</span>
+    <h1>你好，我是 <span class="grad">Umer-MJ</span><br>构建有趣的东西</h1>
+    <p>
+      一个热衷于折腾的开发者与创作者。从 Minecraft 服务器到 frp 内网穿透，
+      从自动化脚本到前端页面——相信好工具能让生活更高效、更有趣。
+    </p>
+    <div class="cta">
+      <a href="#projects" class="btn btn-primary">查看我的项目</a>
+      <a href="#contact" class="btn btn-ghost">联系我</a>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="sec-head">
+      <h2><span class="num">01</span>关于我</h2>
+      <div class="line"></div>
+    </div>
+    <div class="about-grid">
+      <div class="about-card">
+        <h3>简介</h3>
+        <p>
+          我是 Umer-MJ，喜欢把想法变成现实。擅长服务器搭建、网络技术、
+          内网穿透与自动化，也热爱前端与创意编程。这里记录我的作品与思考。
+        </p>
+      </div>
+      <div class="about-card">
+        <h3>技术栈</h3>
+        <ul class="skill-list">
+          <li>服务器 / 内网穿透 <span class="lvl"><span class="dot">●</span> frp · Nginx · Linux</span></li>
+          <li>前端开发 <span class="lvl"><span class="dot">●</span> HTML · CSS · JS</span></li>
+          <li>脚本自动化 <span class="lvl"><span class="dot">●</span> Python · Shell</span></li>
+          <li>游戏 / Minecraft <span class="lvl"><span class="dot">●</span> 服务端 · 模组</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <div class="sec-head">
+      <h2><span class="num">02</span>项目展示</h2>
+      <div class="line"></div>
+    </div>
+    <div class="proj-grid">
+      <div class="proj">
+        <div class="ico" style="background:rgba(83,206,255,0.12)">🌍</div>
+        <h3>Minecraft 服务器</h3>
+        <p class="desc">基于 Mac mini + frp 内网穿透 + 轻量云服务器搭建的联机服务器，低延迟稳定联机，支持模组。</p>
+        <div class="tags"><span class="tag-pt">frp</span><span class="tag-pt">Minecraft</span><span class="tag-pt">内网穿透</span></div>
+      </div>
+      <div class="proj">
+        <div class="ico" style="background:rgba(123,107,255,0.12)">🔗</div>
+        <h3>frp 内网穿透方案</h3>
+        <p class="desc">利用云服务器做公网中转，把家用设备的服务安全暴露到公网，配置清晰、性能优秀。</p>
+        <div class="tags"><span class="tag-pt">frp</span><span class="tag-pt">隧道</span><span class="tag-pt">公网</span></div>
+      </div>
+      <div class="proj">
+        <div class="ico" style="background:rgba(74,222,128,0.12)">🧪</div>
+        <h3>实用工具与脚本</h3>
+        <p class="desc">一系列提升效率的小工具与自动化脚本，用代码解决重复劳动，让日常更省心。</p>
+        <div class="tags"><span class="tag-pt">Python</span><span class="tag-pt">Shell</span><span class="tag-pt">自动化</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="contact">
+      <h2>联系我</h2>
+      <p>有什么想法想聊聊，或者想一起搞点东西？随时找我。</p>
+      <div class="btns">
+        <a href="https://github.com/Umer-MJ" target="_blank" class="btn btn-primary">GitHub</a>
+        <a href="mailto:umer@example.com" class="btn btn-ghost">发邮件</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Crafted with <span class="heart">❤</span> by Umer-MJ · <span id="year"></span></p>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
