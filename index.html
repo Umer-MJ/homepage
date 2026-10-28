@@ -29,23 +29,50 @@
   }
   ::selection { background: rgba(83,206,255,0.25); }
 
-  /* 背景装饰 */
+  /* 背景装饰 —— 移植自 SnowLuma WebUI 的装饰层 */
   .bg-glow {
     position: fixed; inset: 0; z-index: -2;
     background:
+      /* SnowLuma 主装饰：顶部主色径向光晕 */
+      radial-gradient(75% 55% at 50% 0%, color-mix(in oklab, #53ceff 20%, transparent) 0%, transparent 68%),
+      /* 次装饰：随视口尺寸缩放的顶部光带 */
+      radial-gradient(80% 60% at 50% 0%, color-mix(in oklab, #7b6bff 18%, transparent) 0%, transparent 70%),
+      /* 保留原稿的左右双光斑，层次更厚 */
       radial-gradient(600px 300px at 15% 10%, rgba(83,206,255,0.10), transparent 60%),
       radial-gradient(700px 400px at 85% 25%, rgba(123,107,255,0.10), transparent 60%),
       var(--bg);
+    transition: background 0.6s ease;
   }
   .bg-grid {
-    position: fixed; inset: 0; z-index: -1; opacity: 0.35;
+    position: fixed; inset: 0; z-index: -1; opacity: 0.28;
     background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      linear-gradient(rgba(255,255,255,0.030) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.030) 1px, transparent 1px);
     background-size: 44px 44px;
     mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
     -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
   }
+  /* 跟随鼠标的柔和主色光晕（SnowLuma 的 decoration 交互化） */
+  .bg-follow {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    opacity: 0; transition: opacity 0.5s ease;
+    background: radial-gradient(
+      340px 340px at var(--mx, 50%) var(--my, 50%),
+      color-mix(in oklab, #53ceff 13%, transparent) 0%, transparent 70%
+    );
+  }
+  html.has-cursor .bg-follow { opacity: 1; }
+
+  /* SnowLuma 风格滚动条 */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(83,206,255,0.22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(83,206,255,0.42); background-clip: content-box; }
 
   /* 导航 */
   nav {
@@ -163,6 +190,7 @@
 <body>
 <div class="bg-glow"></div>
 <div class="bg-grid"></div>
+<div class="bg-follow"></div>
 <canvas id="field"></canvas>
 
 <nav>
@@ -303,9 +331,16 @@
   resize();
   window.addEventListener('resize', resize);
 
+  // 背景光晕跟随鼠标（带缓动，不会硬跟）
+  const bgFollow = document.querySelector('.bg-follow');
+  let gx = innerWidth / 2, gy = innerHeight / 2;   // 当前渲染位置
+  let tx = gx, ty = gy;                             // 目标位置
+
   window.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
+    tx = e.clientX;
+    ty = e.clientY;
     document.documentElement.classList.add('has-cursor');
   });
   document.addEventListener('mouseleave', () => {
@@ -317,6 +352,14 @@
     const dt = Math.min((t - lastTime) / 16.7, 3);
     lastTime = t;
     const tt = t / 1000;
+
+    // 背景光晕缓动跟随（用低频更新避免每帧写样式）
+    if (bgFollow) {
+      gx += (tx - gx) * 0.06 * dt;
+      gy += (ty - gy) * 0.06 * dt;
+      bgFollow.style.setProperty('--mx', gx + 'px');
+      bgFollow.style.setProperty('--my', gy + 'px');
+    }
 
     ctx.clearRect(0, 0, field.width, field.height);
     ctx.globalCompositeOperation = 'lighter';
